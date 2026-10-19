@@ -1,0 +1,72 @@
+from faker import Faker
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet
+import random
+
+fake = Faker('en_IN')  # Uses Indian names, addresses, and phone numbers
+
+def generate_indian_receipt(filename):
+    doc = SimpleDocTemplate(filename, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+    styles = getSampleStyleSheet()
+    story = []
+
+    # Business Header
+    merchant_name = fake.company() + " Retail Pvt. Ltd."
+    gstin = f"29{fake.bothify('?????####?')}1Z{fake.random_digit()}" # Karnataka GST prefix '29'
+    
+    story.append(Paragraph(f"<b>{merchant_name}</b>", styles['Title']))
+    story.append(Paragraph(f"{fake.address().replace(chr(10), ', ')}", styles['Normal']))
+    story.append(Paragraph(f"<b>GSTIN:</b> {gstin} | <b>Phone:</b> {fake.phone_number()}", styles['Normal']))
+    story.append(Spacer(1, 15))
+
+    # Transaction Info
+    inv_no = f"INV-{fake.random_number(digits=6)}"
+    date_str = fake.date_this_year().strftime("%d-%m-%Y")
+    story.append(Paragraph(f"<b>Invoice No:</b> {inv_no} &nbsp;&nbsp;&nbsp;&nbsp; <b>Date:</b> {date_str}", styles['Normal']))
+    story.append(Spacer(1, 15))
+
+    # Items Table
+    table_data = [["Item Description", "Qty", "Price (INR)", "Total (INR)"]]
+    
+    sample_items = [
+        ("Aashirvaad Atta 5kg", 1, 260.0),
+        ("Amul Butter 500g", 2, 275.0),
+        ("Fortune Sunflower Oil 1L", 1, 145.0),
+        ("Tata Salt 1kg", 3, 28.0),
+        ("Cadbury Silk 150g", 2, 175.0)
+    ]
+    
+    items = random.sample(sample_items, k=random.randint(2, 4))
+    subtotal = 0
+    
+    for item, qty, price in items:
+        tot = qty * price
+        subtotal += tot
+        table_data.append([item, str(qty), f"{price:.2f}", f"{tot:.2f}"])
+
+    cgst = round(subtotal * 0.025, 2)
+    sgst = round(subtotal * 0.025, 2)
+    grand_total = subtotal + cgst + sgst
+
+    table_data.append(["", "", "Subtotal:", f"{subtotal:.2f}"])
+    table_data.append(["", "", "CGST (2.5%):", f"{cgst:.2f}"])
+    table_data.append(["", "", "SGST (2.5%):", f"{sgst:.2f}"])
+    table_data.append(["", "", "Grand Total:", f"{grand_total:.2f}"])
+
+    t = Table(table_data, colWidths=[200, 50, 100, 100])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+        ('ALIGN', (1,1), (-1,-1), 'RIGHT'),
+        ('GRID', (0,0), (-1,-5), 0.5, colors.grey),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0,0), (-1,0), 6),
+    ]))
+    
+    story.append(t)
+    doc.build(story)
+
+# Generate 5 test receipts
+for i in range(1, 6):
+    generate_indian_receipt(f"receipt_sample_{i}.pdf")
