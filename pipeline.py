@@ -4,7 +4,7 @@ from supabase import create_client
 
 # Paste your credentials here
 SUPABASE_URL = "https://bpkwwwsctogbomsrizmt.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwa3d3d3NjdG9nYm9tc3Jpem10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMDQ1OTcsImV4cCI6MjEwNzg4MDU5N30.6xNS7abE9bl6sxwkk8GN2eKg6NmB6kK9tEBGrSFvP8g"
+SUPABASE_KEY = "sb_publishable_dPF3gE09KYwNKMDT6uhG1A_lHc3EBAe"
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
@@ -70,5 +70,8 @@ def process_pdf(pdf_path):
     print(f"✅ Extracted & Pushed to Supabase! Invoice ID: {invoice_id}")
 
 if __name__ == "__main__":
-    # Test on generated receipt sample
-    process_pdf("receipt_sample_1.pdf")
+    # Loop through receipt_sample_1.pdf to receipt_sample_5.pdf
+    for i in range(1, 6):
+        file_name = f"receipt_sample_{i}.pdf"
+        print(f"Starting extraction for {file_name}...")
+        process_pdf(file_name)
